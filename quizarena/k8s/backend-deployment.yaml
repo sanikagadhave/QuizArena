@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizarena-backend
+  namespace: quizarena
+  labels:
+    app: quizarena-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quizarena-backend
+  template:
+    metadata:
+      labels:
+        app: quizarena-backend
+    spec:
+      containers:
+        - name: backend
+          image: quizarena-backend:latest
+          imagePullPolicy: IfNotPresent   # use `minikube image load` or `eval $(minikube docker-env)` first
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+            - name: NODE_ENV
+              value: "production"
+            - name: DB_PATH
+              value: "/app/src/database/quizarena.db"
+            - name: JWT_EXPIRES_IN
+              value: "7d"
+            - name: CLIENT_URL
+              value: "http://quizarena-frontend"
+          envFrom:
+            - secretRef:
+                name: quizarena-backend-secret
+          volumeMounts:
+            - name: db-storage
+              mountPath: /app/src/database
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: quizarena-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quizarena-backend
+  namespace: quizarena
+spec:
+  selector:
+    app: quizarena-backend
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quizarena-db-pvc
+  namespace: quizarena
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 256Mi

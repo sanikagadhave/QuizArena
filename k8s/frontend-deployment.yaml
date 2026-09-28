@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizarena-frontend
+  namespace: quizarena
+  labels:
+    app: quizarena-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quizarena-frontend
+  template:
+    metadata:
+      labels:
+        app: quizarena-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: quizarena-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quizarena-frontend
+  namespace: quizarena
+spec:
+  selector:
+    app: quizarena-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: NodePort   # `minikube service quizarena-frontend -n quizarena` to open it

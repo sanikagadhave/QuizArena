@@ -1,0 +1,21 @@
+# Optional: requires an ingress controller (e.g. `minikube addons enable ingress`)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quizarena-ingress
+  namespace: quizarena
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - host: quizarena.local
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: { name: quizarena-backend, port: { number: 5000 } }
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: { name: quizarena-frontend, port: { number: 80 } }
